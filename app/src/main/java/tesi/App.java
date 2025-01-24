@@ -20,7 +20,8 @@ public class App {
     public static String home = System.getProperty("user.home");
 
     /**
-     * delete output files before execution to avoid adding the data on top of previous data
+     * delete output files before execution to avoid adding the data on top of
+     * previous data
      */
     public static void deleteWriteFiles() {
         Path p;
@@ -46,12 +47,13 @@ public class App {
         }
     }
 
-    public static void analyzeFile(Path path) {
+    public static void analyzeFile(Path path, String extra) {
         double area;
         try {
             area = calcPathArea(path);
             Path parent = path.getParent();
-            Path txt = parent.resolve("output.txt");
+            String name = "output_" + extra + ".txt";
+            Path txt = parent.resolve(name);
             String output = path + " has area of " + area + "\n";
             System.out.println("writing in " + txt);
             Files.writeString(txt, output, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
@@ -64,17 +66,19 @@ public class App {
     }
 
     public static void analyzeFiles() {
+        analyzeFiles("");
+    }
+
+    public static void analyzeFiles(String extra) {
         Path base = Paths.get(home, "Desktop\\files\\data");
 
         try (Stream<Path> walk = Files.walk(base)) {
             walk.filter(Files::isRegularFile)
-                    .forEach(f -> analyzeFile(f));
+                    .forEach(f -> analyzeFile(f, extra));
         } catch (Exception e) {
             e.printStackTrace();
-            ;
         }
     }
-
 
     public static long simpleListener(Set<Path> deleted, Set<Path> created, Set<Path> modified) {
         // for every file compute the area and if the area is < 16 add ((16 - area)/2)
@@ -91,10 +95,14 @@ public class App {
                 double area = calcPathArea(path);
                 if (area < 16) {
                     result += 16 - area;
-
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 // do not update result: area cannot be calculated (maybe deleted file)
+                e.printStackTrace();
+            } catch (IndexOutOfBoundsException e) {
+                // do not update result: area cannot be calculated (probably the random list of
+                // entropies has a different size from the file-generated one)
+                e.printStackTrace();
             }
         }
 
@@ -135,6 +143,11 @@ public class App {
                         result += 1;
                     }
                 } catch (IOException e) {
+                    // do not update result: area cannot be calculated (maybe deleted file)
+                    e.printStackTrace();
+                } catch (IndexOutOfBoundsException e) {
+                    // do not update result: area cannot be calculated (probably the random list of
+                    // entropies has a different size from the file-generated one)
                     e.printStackTrace();
                 }
             }
@@ -146,6 +159,12 @@ public class App {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException, NoSuchAlgorithmException {
+
+        // for (int i = 0; i < 10; i++) {
+        //     analyzeFiles(String.valueOf(i));
+        // }
+        // return;
+
         deleteWriteFiles();
 
         ArrayList<PathHandler> handlers = new ArrayList<>();
@@ -153,9 +172,9 @@ public class App {
         handlers.add(genSimpleHandler("Documents"));
         handlers.add(genSimpleHandler("Pictures"));
         handlers.add(genSimpleHandler("Videos"));
-        //handlers.add(genSimpleHandler("Appdata"));
+        // handlers.add(genSimpleHandler("Appdata"));
         handlers.add(genFileHandler("Downloads"));
-     
+
         for (PathHandler pathHandler : handlers) {
             new Thread(pathHandler::run).start();
         }
@@ -169,7 +188,6 @@ public class App {
         // sleep a few seconds to wait everything stopped
         Thread.sleep(((long) (5 * 1000)));
 
-
         // print the level at which the handlers finished
         for (PathHandler pathHandler : handlers) {
             var water = pathHandler.bucket.getWater();
@@ -180,5 +198,6 @@ public class App {
         System.out.println("end");
         // System.exit(0);
         return;
+
     }
 }

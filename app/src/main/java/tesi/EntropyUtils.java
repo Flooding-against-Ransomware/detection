@@ -62,7 +62,6 @@ public class EntropyUtils {
     public static List<Double> readFileEntropies(Path path) throws IOException {
         if (!Files.isRegularFile(path)) {
             throw new IOException(path + " is not a regular file");
-            // return new ArrayList<Double>();
         }
 
         InputStream stream = Files.newInputStream(path);
@@ -74,14 +73,11 @@ public class EntropyUtils {
 
     }
 
-    public static List<Double> subtractEntropiesList(List<Double> ents1, List<Double> ents2) {
+    public static List<Double> subtractEntropiesList(List<Double> ents1, List<Double> ents2) throws IndexOutOfBoundsException {
         List<Double> offset = new ArrayList<Double>();
 
         if (ents1.size() != ents2.size()) {
-            System.err.println("the lists have different sizes!");
-            System.out.println("ents1: " + Arrays.toString(ents1.toArray()));
-            System.out.println("ents2: " + Arrays.toString(ents2.toArray()));
-            return null;
+            throw new IndexOutOfBoundsException("the sizes of the two lists are different, you cannot subtract them! they  are: " + ents1.size() + " and " + ents2.size());
         }
 
         Iterator<Double> e1Iterator = ents1.iterator();
@@ -120,7 +116,7 @@ public class EntropyUtils {
         return calcPathArea(path, defaultRandomEntropies);
     }
 
-    public static double calcPathArea(Path path, List<Double> randomEntropies) throws IOException {
+    public static double calcPathArea(Path path, List<Double> randomEntropies) throws IOException, IndexOutOfBoundsException {
         long result = 0;
         List<Double> ents;
         ents = readFileEntropies(path);

@@ -6,6 +6,7 @@ package tesi;
 import java.io.IOException;
 import java.nio.file.*;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -41,6 +42,8 @@ public class App {
         for (Path path : writeLocations) {
             try {
                 Files.deleteIfExists(path);
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                Files.writeString(path, "output test: " + new Timestamp(System.currentTimeMillis()) + "\n", StandardOpenOption.APPEND, StandardOpenOption.CREATE);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -167,37 +170,74 @@ public class App {
 
         deleteWriteFiles();
 
-        ArrayList<PathHandler> handlers = new ArrayList<>();
-        handlers.add(genSimpleHandler("Desktop"));
-        handlers.add(genSimpleHandler("Documents"));
-        handlers.add(genSimpleHandler("Pictures"));
-        handlers.add(genSimpleHandler("Videos"));
-        // handlers.add(genSimpleHandler("Appdata"));
-        handlers.add(genFileHandler("Downloads"));
+        // ArrayList<PathHandler> handlers = new ArrayList<>();
+        // handlers.add(genSimpleHandler("Desktop"));
+        // handlers.add(genSimpleHandler("Documents"));
+        // handlers.add(genSimpleHandler("Pictures"));
+        // // handlers.add(genSimpleHandler("Videos"));
+        // // handlers.add(genSimpleHandler("Appdata"));
+        // handlers.add(genFileHandler("Downloads"));
 
-        for (PathHandler pathHandler : handlers) {
-            new Thread(pathHandler::run).start();
-        }
+        // for (PathHandler pathHandler : handlers) {
+        //     new Thread(pathHandler::run).start();
+        // }
 
-        Thread.sleep(((long) (15 * 60 * 1000)));
+        
+        // // write to files at what time we have started
+        // Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        // String output = "started detection at " + timestamp + "\n";
+        // for (Path path : writeLocations) {
+        //     try {
+        //         Files.writeString(path, output, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+        //         System.out.println("wrote in " + path);
+        //     } catch (IOException e) {
+        //         e.printStackTrace();
+        //     }
+        // }
 
-        for (PathHandler pathHandler : handlers) {
-            pathHandler.shutdown();
-        }
+        // Thread.sleep(((long) (5 * 60 * 1000)));
 
-        // sleep a few seconds to wait everything stopped
-        Thread.sleep(((long) (5 * 1000)));
+        // for (PathHandler pathHandler : handlers) {
+        //     pathHandler.shutdown();
+        // }
 
-        // print the level at which the handlers finished
-        for (PathHandler pathHandler : handlers) {
-            var water = pathHandler.bucket.getWater();
-            String msg = pathHandler.name + " finished with water level " + water;
-            System.out.println(msg);
-        }
+        // // sleep a few seconds to wait everything stopped
+        // Thread.sleep(((long) (15 * 1000)));
 
-        System.out.println("end");
-        // System.exit(0);
-        return;
+        // // print the level at which the handlers finished
+        // for (PathHandler pathHandler : handlers) {
+        //     var water = pathHandler.bucket.getWater();
+        //     String msg = pathHandler.name + " finished with water level " + water;
+        //     System.out.println(msg);
+        // }
+
+        // System.out.println("end");
+        // // System.exit(0);
+        // return;
 
     }
 }
+
+// calcola piu volte output.txt di tutti i files esempio con analyze files
+
+
+
+
+// ransomware test da cui scegliere:
+// gand crab
+// ryuk
+// vipasana
+// lockbit
+// phobos
+// wannacry
+
+
+
+
+
+
+// C:\Users\IEUser\jdk21\bin\java.exe -jar C:\Users\IEUser\app-all.jar
+
+
+
+//ansible-playbook -i /mnt/c/Users/internal_inventory /mnt/c/Users/internal_playbook.yml --extra-vars "@/mnt/c/Users/ansible_variables.yml"

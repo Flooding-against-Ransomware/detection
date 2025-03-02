@@ -43,7 +43,7 @@ public class App {
             try {
                 Files.deleteIfExists(path);
                 Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-                Files.writeString(path, "output test: " + new Timestamp(System.currentTimeMillis()) + "\n", StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+                //Files.writeString(path, "output test: " + new Timestamp(System.currentTimeMillis()) + "\n", StandardOpenOption.APPEND, StandardOpenOption.CREATE);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -117,8 +117,8 @@ public class App {
     public static PathHandler genSimpleHandler(String loc) throws IOException {
         // look only in path home/loc, recursively
         Path target = Paths.get(home, loc);
-        // the bucket has a capacity of 200 and leaks 30 every 15 seconds
-        PathHandler handler = new PathHandler(Collections.singleton(target), new SimpleTimeBucket(200, 30, 15 * 1000));
+        // the bucket has a capacity of 30 and leaks 2 every 1 second(s)
+        PathHandler handler = new PathHandler(Collections.singleton(target), new SimpleTimeBucket(30, 2, 1 * 1000));
         handler.name = loc;
         handler.setListener(App::simpleListener);
         return handler;
@@ -170,17 +170,17 @@ public class App {
 
         deleteWriteFiles();
 
-        // ArrayList<PathHandler> handlers = new ArrayList<>();
-        // handlers.add(genSimpleHandler("Desktop"));
-        // handlers.add(genSimpleHandler("Documents"));
-        // handlers.add(genSimpleHandler("Pictures"));
-        // // handlers.add(genSimpleHandler("Videos"));
-        // // handlers.add(genSimpleHandler("Appdata"));
-        // handlers.add(genFileHandler("Downloads"));
+        ArrayList<PathHandler> handlers = new ArrayList<>();
+        handlers.add(genSimpleHandler("Desktop"));
+        handlers.add(genSimpleHandler("Documents"));
+        handlers.add(genSimpleHandler("Pictures"));
+        // handlers.add(genSimpleHandler("Videos"));
+        // handlers.add(genSimpleHandler("Appdata"));
+        handlers.add(genFileHandler("Downloads"));
 
-        // for (PathHandler pathHandler : handlers) {
-        //     new Thread(pathHandler::run).start();
-        // }
+        for (PathHandler pathHandler : handlers) {
+            new Thread(pathHandler::run).start();
+        }
 
         
         // // write to files at what time we have started
@@ -195,49 +195,25 @@ public class App {
         //     }
         // }
 
-        // Thread.sleep(((long) (5 * 60 * 1000)));
+        Thread.sleep(((long) (2 * 60 * 1000)));
 
-        // for (PathHandler pathHandler : handlers) {
-        //     pathHandler.shutdown();
-        // }
+        for (PathHandler pathHandler : handlers) {
+            pathHandler.shutdown();
+        }
 
-        // // sleep a few seconds to wait everything stopped
-        // Thread.sleep(((long) (15 * 1000)));
+        // sleep a few seconds to wait everything stopped
+        Thread.sleep(((long) (15 * 1000)));
 
-        // // print the level at which the handlers finished
-        // for (PathHandler pathHandler : handlers) {
-        //     var water = pathHandler.bucket.getWater();
-        //     String msg = pathHandler.name + " finished with water level " + water;
-        //     System.out.println(msg);
-        // }
+        // print the level at which the handlers finished
+        for (PathHandler pathHandler : handlers) {
+            var water = pathHandler.bucket.getWater();
+            String msg = pathHandler.name + " finished with water level " + water;
+            System.out.println(msg);
+        }
 
-        // System.out.println("end");
-        // // System.exit(0);
-        // return;
+        System.out.println("end");
+        // System.exit(0);
+        return;
 
     }
 }
-
-// calcola piu volte output.txt di tutti i files esempio con analyze files
-
-
-
-
-// ransomware test da cui scegliere:
-// gand crab
-// ryuk
-// vipasana
-// lockbit
-// phobos
-// wannacry
-
-
-
-
-
-
-// C:\Users\IEUser\jdk21\bin\java.exe -jar C:\Users\IEUser\app-all.jar
-
-
-
-//ansible-playbook -i /mnt/c/Users/internal_inventory /mnt/c/Users/internal_playbook.yml --extra-vars "@/mnt/c/Users/ansible_variables.yml"

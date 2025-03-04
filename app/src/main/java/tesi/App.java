@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import static tesi.EntropyUtils.*;
@@ -19,6 +20,8 @@ public class App {
 
     static ArrayList<Path> writeLocations = new ArrayList<>();
     public static String home = System.getProperty("user.home");
+    static Path appdata = Paths.get(System.getenv("APPDATA")).getParent();
+
 
     /**
      * delete output files before execution to avoid adding the data on top of
@@ -33,8 +36,8 @@ public class App {
         p = Paths.get(System.getProperty("user.home"), "output.txt");
         writeLocations.add(p);
 
-        // p = Paths.get("C:", "output.txt");
-        // writeLocations.add(p);
+        p = Paths.get("C:", "output.txt");
+        writeLocations.add(p);
 
         p = Paths.get("C:", "AsdrubalePaolo", "output.txt");
         writeLocations.add(p);
@@ -44,6 +47,22 @@ public class App {
                 Files.deleteIfExists(path);
                 Timestamp timestamp = new Timestamp(System.currentTimeMillis());
                 //Files.writeString(path, "output test: " + new Timestamp(System.currentTimeMillis()) + "\n", StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    static AtomicBoolean firstFileEvent = new AtomicBoolean(false);
+
+    public static void firstFileMod() {
+        if(firstFileEvent.getAndSet(true)){
+            return;
+        }
+
+        for (Path path : writeLocations) {
+            try {
+                Files.writeString(path, "first file change detected at " + new Timestamp(System.currentTimeMillis()) + "\n", StandardOpenOption.APPEND, StandardOpenOption.CREATE);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -83,6 +102,15 @@ public class App {
         }
     }
 
+
+    public static long simpleListenerNoAppdata(Set<Path> deleted, Set<Path> created, Set<Path> modified) {
+        deleted.removeIf(path -> (path.startsWith(appdata) || path.endsWith("output.txt")));
+        created.removeIf(path -> (path.startsWith(appdata) || path.endsWith("output.txt")));
+        modified.removeIf(path -> (path.startsWith(appdata) || path.endsWith("output.txt")));
+
+        return simpleListener(deleted, created, modified);
+    }
+
     public static long simpleListener(Set<Path> deleted, Set<Path> created, Set<Path> modified) {
         // for every file compute the area and if the area is < 16 add ((16 - area)/2)
         // to the water to add (the return value)
@@ -112,6 +140,15 @@ public class App {
         result = result / 2;
 
         return result;
+    }
+
+    public static PathHandler genHomeHandler(String user) throws IOException {
+        Path target = Paths.get("C:\\Users", user).normalize();
+
+        PathHandler handler = new PathHandler(Collections.singleton(target), new SimpleTimeBucket(30, 2, 1 * 1000));
+        handler.name = target.toString();
+        handler.setListener(App::simpleListenerNoAppdata);
+        return handler;
     }
 
     public static PathHandler genSimpleHandler(String loc) throws IOException {
@@ -178,6 +215,10 @@ public class App {
         // handlers.add(genSimpleHandler("Appdata"));
         handlers.add(genFileHandler("Downloads"));
 
+        // for phobos/ryuk
+        // handlers.add(genHomeHandler("IEUser"));
+        // handlers.add(genHomeHandler("."));
+
         for (PathHandler pathHandler : handlers) {
             new Thread(pathHandler::run).start();
         }
@@ -195,7 +236,7 @@ public class App {
         //     }
         // }
 
-        Thread.sleep(((long) (2 * 60 * 1000)));
+        Thread.sleep(((long) (20 * 60 * 1000)));
 
         for (PathHandler pathHandler : handlers) {
             pathHandler.shutdown();

@@ -81,6 +81,15 @@ public class Watcher implements Runnable {
                 // This only sends new notifications when there was NO event this cycle:
                 if (wk == null && hasPending) {
                     //System.out.println("sending events");
+
+                    // mostly for phobos & ryuk, can be useful regardless in testing
+                    try {
+                        App.firstFileMod();
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+                    // end phobos & ryuk
+
                     try {
                         long addition = listener.fileChange(deleted, created, updated);
                         boolean result = handler.addWater(addition, deleted.size(), created.size(), updated.size());
